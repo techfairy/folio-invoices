@@ -12,6 +12,17 @@ Separate project: `invoice-app`. The existing parent budget application was pres
 - Fresh finish review identified and led to fixes for mobile sign-out, stale settings overwrites, and validation across timezones. Async reads are invalidated when switching accounts.
 - Impeccable detector: one font warning for Arial in the compact document preview. Retained intentionally as a familiar document face; actual PDF embeds licensed Noto Sans.
 
-Not verified live: a real Supabase account, confirmation and reset emails, SMTP delivery, and deployed cross-device synchronization. The owner requested prepared source and setup instructions because there is no Supabase project yet. No remote repository was configured, and no site or database was published.
+Deployment verified on 2026-10-31 after the owner authorized publication:
+
+- Public source: https://github.com/techfairy/folio-invoices. Live application: https://techfairy.github.io/folio-invoices/.
+- GitHub Actions run 41184847152: dependency installation, 26 tests, production build, and Pages deployment all succeeded.
+- Supabase project `invoices` (`nwvcrtwiijrdkldipcar`): table, RLS, owner policy, and save function verified in the live database. The setup script uses conditional policy creation without dropping existing policies.
+- Real anonymous HTTP requests to read the workspace table and execute the save function both return HTTP 401 / PostgreSQL 42501. SQL also confirms that the anonymous role has neither permission.
+- Owner confirmed email and signed in. The authenticated workspace is open in the owner's browser, and a persisted workspace with revision 1 verifies a real cloud save. No synthetic client or invoice was added to the owner's account.
+- New registrations were disabled after the owner's account was created. Public auth settings confirm email login enabled and `disable_signup=true`. Confirm-email remains enabled and anonymous sign-ins remain disabled.
+- Production site URL and redirect allow-list configured for the published URL and local preview. GitHub holds only the Supabase URL and public publishable key as build variables; no service or secret key was read or uploaded.
+- Initial live Lighthouse: performance 100, accessibility 92, best practices 100, SEO 100 for both mobile and desktop. A minor paragraph contrast issue on the sign-in page was corrected after this measurement.
+
+Not verified live: password-reset email delivery and simultaneous editing across two separate signed-in devices. The same conflict logic and security schema passed local automated tests.
 
 Generated reports, screenshots, test PDFs, and example backups are in ignored `verification/` and `test-results/`. They are excluded from the source archive.
