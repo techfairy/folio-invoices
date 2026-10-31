@@ -1,8 +1,11 @@
 import { jsPDF } from 'jspdf';
+import type { TextOptionsLight } from 'jspdf';
 import { autoTable } from 'jspdf-autotable';
 import { formatDate, money, totals } from './domain';
 import type { Invoice, Party } from './domain';
 
+// The embedded Folio Sans faces combine Noto Sans and Noto Sans Hebrew
+// from notofonts/noto-fonts under the SIL OFL in public/fonts/OFL.txt.
 let fonts: Promise<[string, string]> | undefined;
 function asBase64(buffer: ArrayBuffer) {
   const bytes = new Uint8Array(buffer); let result = '';
@@ -11,7 +14,7 @@ function asBase64(buffer: ArrayBuffer) {
 }
 async function loadFonts(): Promise<[string, string]> {
   if (!fonts) fonts = Promise.all(['Regular', 'Bold'].map(async weight => {
-    const response = await fetch(`${import.meta.env.BASE_URL}fonts/NotoSans-${weight}.ttf`);
+    const response = await fetch(`${import.meta.env.BASE_URL}fonts/NotoSans-${weight}.ttf?v=hebrew-1`);
     if (!response.ok) throw new Error('Could not load PDF fonts. Check your connection and try again.');
     return asBase64(await response.arrayBuffer());
   })).then(result => result as [string, string]).catch(error => { fonts = undefined; throw error; });
@@ -20,6 +23,11 @@ async function loadFonts(): Promise<[string, string]> {
 export async function buildPdf(invoice: Invoice) {
   const [regular, bold] = await loadFonts();
   const doc = new jsPDF({ unit: 'mm', format: 'a4', compress: true });
+  // Stored strings are logical Unicode. Reorder each rendered line to visual
+  // order, including AutoTable cells, while preserving Latin runs and numbers.
+  doc.internal.events.subscribe('preProcessText', (args: { options: TextOptionsLight }) => {
+    Object.assign(args.options, { isInputVisual:false,isOutputVisual:true,isOutputRtl:false,isSymmetricSwapping:true });
+  });
   doc.addFileToVFS('NotoSans-Regular.ttf', regular); doc.addFont('NotoSans-Regular.ttf', 'Noto', 'normal');
   doc.addFileToVFS('NotoSans-Bold.ttf', bold); doc.addFont('NotoSans-Bold.ttf', 'Noto', 'bold');
   doc.setFont('Noto'); doc.setTextColor(39, 44, 42);

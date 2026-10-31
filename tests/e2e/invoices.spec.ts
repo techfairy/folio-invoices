@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
+import { writeFile } from 'node:fs/promises';
 
 test('issue a paid invoice, preserve its snapshot, download PDF, and restore a backup', async ({ page }) => {
   const errors: string[] = []; page.on('pageerror',error => errors.push(error.message));
@@ -159,4 +160,21 @@ test('each client uses its own prefix and advances only its own counter', async 
   await page.getByRole('button',{ name:'New invoice',exact:true }).click();
   await page.getByLabel('Bill to').selectOption('a');
   await expect(page.getByLabel('Invoice number',{ exact:false })).toHaveValue(/^ALPHA-005\//);
+});
+
+test('PDF fonts cover Hebrew in both weights and preserve mixed invoice content', async ({ page }) => {
+  await page.goto('/');
+  const result=await page.evaluate(async () => {
+    const pdfModule='/src/pdf.ts'; const domainModule='/src/domain.ts';
+    const {buildPdf}=await import(/* @vite-ignore */ pdfModule); const {today}=await import(/* @vite-ignore */ domainModule);
+    const invoice={ id:'hebrew',clientId:'sample',number:'TEST-HEB-001',date:today(),paidDate:today(),currency:'EUR',sender:{ name:'Example Studio / Пример студии',email:'studio@example.test',address:'Belgrade, Serbia',taxId:'REG-123' },client:{ name:'שרה לוי',email:'client@example.test',address:'רחוב הרצל 12, תל אביב',taxId:'123456789' },items:[{ id:'a',description:'Technical support — תמיכה טכנית (IVR-123)',quantity:'1',rate:'650' },{ id:'b',description:'פיתוח אתר — Website development, project ABC-42',quantity:'2',rate:'25.50' }],tax:'0',note:'תודה רבה! Thank you. Спасибо.\nOrder ABC-123 · סה״כ 701.00 EUR',createdAt:new Date().toISOString() };
+    const doc=await buildPdf(invoice); const coverage=[];
+    for(const weight of ['normal','bold']){
+      doc.setFont('Noto',weight);
+      for(const char of 'אבגדהוזחטיכלמנסעפצקרשתךםןףץАБЯABC€')coverage.push({weight,char,glyph:doc.getFont().metadata.characterToGlyph(char.codePointAt(0))});
+    }
+    return {coverage,pdf:doc.output('datauristring').split(',')[1]};
+  });
+  for(const glyph of result.coverage)expect(glyph.glyph,`${glyph.weight}: ${glyph.char}`).toBeGreaterThan(0);
+  await writeFile('test-results/invoice-hebrew.pdf',Buffer.from(result.pdf,'base64'));
 });

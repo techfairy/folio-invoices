@@ -14,5 +14,5 @@
 @media(max-width:760px){.mobile-account{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:4px 20px;background:white;border-bottom:1px solid var(--line);font-size:.75rem;color:var(--muted)}.mobile-account>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mobile-account .text-button{white-space:nowrap;font-size:.75rem}}
 @media(max-width:360px){.nav-item svg{display:none}.sidebar nav{gap:0}.nav-item{padding-inline:9px;font-size:.75rem}}
 @media(max-width:760px){.form-section{padding-block-end:var(--s8)}.filter-row .client-filter{flex-basis:100%;max-width:none}}
-.client-numbering{padding-block-start:var(--s6)}.client-numbering h3{font-size:1rem;margin-bottom:var(--s2)}.client-numbering>p{font-size:.8125rem;color:var(--muted);margin-bottom:var(--s6)}.auth-story p{color:#526849}
+.client-numbering{padding-block-start:var(--s6)}.client-numbering h3{font-size:1rem;margin-bottom:var(--s2)}.client-numbering>p{font-size:.8125rem;color:var(--muted);margin-bottom:var(--s6)}.auth-story p,.auth-foot{color:#526849}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
